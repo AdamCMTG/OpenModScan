@@ -259,6 +259,21 @@
             <string notr="true">115200</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string notr="true">230400</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">460800</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">921600</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="1" column="0">
