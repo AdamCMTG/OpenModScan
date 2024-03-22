@@ -1,0 +1,64 @@
+name: QT CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  SOURCE_DIR:   ${{ github.workspace }}\omodscan
+  QT_VERSION:   5.15.2
+  
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:    
+    - name: Create build directory
+      run:  mkdir ${{ runner.temp }}\build
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        setup-python: false
+    - name: Download JOM
+      uses: suisei-cn/actions-download-file@v1
+      with:
+        url: http://download.qt.io/official_releases/jom/jom.zip
+        target: ${{ runner.temp }}\
+    - name: Unzip JOM
+      working-directory: ${{ runner.temp }}\
+      run:  7z x jom.zip -ojom
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Build
+      working-directory: ${{ runner.temp }}\build
+      run:  |
+            qmake -r ${{ env.SOURCE_DIR }}\omodscan.pro
+            ${{ runner.temp }}\jom\jom -j2
+            windeployqt --qmldir ${{ env.SOURCE_DIR }} omodscan.exe --pdb --release --compiler-runtime
+    - name: Cleanup
+      working-directory: ${{ runner.temp }}\build
+      run:  |
+            rm *.obj              
+            rm *.h
+            rm *.cpp
+            rm *.res
+            rm *.rc
+            rm *.stash
+            rm Makefile
+            rm vc_redist*
+    - name: Save build artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: omodscan-${{github.run_number}}
+        path: ${{ runner.temp }}\build\*
